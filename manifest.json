@@ -1,0 +1,9 @@
+{
+  "name": "Job Tracker",
+  "short_name": "Job Tracker",
+  "description": "Track jobs, tasks, parts and tools.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5f5f7",
+  "theme_color": "#f5f5f7"
+}

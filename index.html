@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f5f7" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Job Tracker" />
+  <title>Job Tracker</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">JT</div>
+        <div>
+          <div class="brand-title">Job Tracker</div>
+          <div class="brand-subtitle">Jobs • Tasks • Parts • Tools</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-view="jobs"><span>▦</span> Jobs</button>
+        <button class="nav-item" data-view="calendar"><span>◫</span> Calendar</button>
+        <button class="nav-item" data-view="tasks"><span>✓</span> Tasks</button>
+        <button class="nav-item" data-view="lists"><span>☷</span> Parts & Tools</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="secondary full" id="exportBtn">Export backup</button>
+        <label class="secondary full file-button">
+          Import backup
+          <input id="importInput" type="file" accept="application/json" hidden />
+        </label>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-btn mobile-only" id="menuBtn" aria-label="Open menu">☰</button>
+          <div>
+            <h1 id="pageTitle">Jobs</h1>
+            <p id="pageSubtitle">Track active, upcoming and completed work.</p>
+          </div>
+        </div>
+        <button class="primary" id="newJobBtn">＋ New Job</button>
+      </header>
+
+      <section class="toolbar" id="jobsToolbar">
+        <input id="searchInput" class="search" type="search" placeholder="Search jobs, customers, locations…" />
+        <select id="statusFilter">
+          <option value="all">All statuses</option>
+          <option value="Planned">Planned</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Waiting">Waiting</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </section>
+
+      <section id="jobsView" class="view active">
+        <div id="jobCards" class="card-grid"></div>
+        <div id="emptyJobs" class="empty hidden">
+          <div class="empty-icon">▦</div>
+          <h3>No jobs yet</h3>
+          <p>Add your first job to get started.</p>
+        </div>
+      </section>
+
+      <section id="calendarView" class="view">
+        <div class="calendar-header">
+          <button class="secondary" id="prevMonth">‹</button>
+          <h2 id="calendarTitle"></h2>
+          <button class="secondary" id="nextMonth">›</button>
+        </div>
+        <div class="calendar-weekdays">
+          <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </section>
+
+      <section id="tasksView" class="view">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Task List</h2>
+              <p>Tasks are attached to jobs and can be checked off here.</p>
+            </div>
+            <select id="taskJobFilter">
+              <option value="all">All jobs</option>
+            </select>
+          </div>
+          <div id="taskList" class="task-list"></div>
+        </div>
+      </section>
+
+      <section id="listsView" class="view">
+        <div class="panel">
+          <div class="panel-head wrap">
+            <div>
+              <h2>Parts & Tools</h2>
+              <p>Select a job, add items, then print a clean pick list.</p>
+            </div>
+            <div class="inline-actions">
+              <select id="listJobSelect"></select>
+              <button class="secondary" id="printListBtn">Print list</button>
+            </div>
+          </div>
+
+          <div class="two-col">
+            <div>
+              <div class="section-head">
+                <h3>Parts</h3>
+                <button class="small primary" data-add-item="parts">＋ Add</button>
+              </div>
+              <div id="partsList" class="item-list"></div>
+            </div>
+            <div>
+              <div class="section-head">
+                <h3>Tools</h3>
+                <button class="small primary" data-add-item="tools">＋ Add</button>
+              </div>
+              <div id="toolsList" class="item-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="printArea" class="print-area">
+          <h1>Job Parts & Tools List</h1>
+          <div id="printJobMeta"></div>
+          <div class="print-columns">
+            <section>
+              <h2>Parts</h2>
+              <table><thead><tr><th>Qty</th><th>Item</th><th>Notes</th></tr></thead><tbody id="printParts"></tbody></table>
+            </section>
+            <section>
+              <h2>Tools</h2>
+              <table><thead><tr><th>Qty</th><th>Item</th><th>Notes</th></tr></thead><tbody id="printTools"></tbody></table>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="jobDialog">
+    <form method="dialog" id="jobForm" class="dialog-card">
+      <div class="dialog-head">
+        <div>
+          <h2 id="jobDialogTitle">New Job</h2>
+          <p>Add the job details below.</p>
+        </div>
+        <button class="icon-btn" value="cancel" aria-label="Close">✕</button>
+      </div>
+
+      <input type="hidden" id="jobId" />
+
+      <div class="form-grid">
+        <label class="span-2">Job title
+          <input id="jobTitle" required placeholder="e.g. Kitchen renovation" />
+        </label>
+        <label>Customer
+          <input id="customer" placeholder="Customer name" />
+        </label>
+        <label>Status
+          <select id="jobStatus">
+            <option>Planned</option>
+            <option>In Progress</option>
+            <option>Waiting</option>
+            <option>Completed</option>
+          </select>
+        </label>
+        <label>Start date
+          <input id="startDate" type="date" />
+        </label>
+        <label>Due date
+          <input id="dueDate" type="date" />
+        </label>
+        <label class="span-2">Location
+          <input id="location" placeholder="Site address or suburb" />
+        </label>
+        <label class="span-2">Notes
+          <textarea id="notes" rows="4" placeholder="Job notes, scope, access details…"></textarea>
+        </label>
+        <label class="span-2">Tasks
+          <textarea id="tasks" rows="5" placeholder="One task per line"></textarea>
+        </label>
+      </div>
+
+      <div class="dialog-actions">
+        <button type="button" class="danger hidden" id="deleteJobBtn">Delete</button>
+        <span class="spacer"></span>
+        <button value="cancel" class="secondary">Cancel</button>
+        <button value="default" class="primary" id="saveJobBtn">Save Job</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="itemDialog">
+    <form method="dialog" id="itemForm" class="dialog-card compact">
+      <div class="dialog-head">
+        <div>
+          <h2 id="itemDialogTitle">Add Item</h2>
+          <p>Add to the selected job list.</p>
+        </div>
+        <button class="icon-btn" value="cancel">✕</button>
+      </div>
+      <input type="hidden" id="itemType" />
+      <label>Item
+        <input id="itemName" required placeholder="Item name" />
+      </label>
+      <label>Quantity
+        <input id="itemQty" type="number" min="1" value="1" />
+      </label>
+      <label>Notes
+        <input id="itemNotes" placeholder="Size, model, supplier…" />
+      </label>
+      <div class="dialog-actions">
+        <span class="spacer"></span>
+        <button value="cancel" class="secondary">Cancel</button>
+        <button value="default" class="primary" id="saveItemBtn">Add Item</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="./app.js"></script>
+</body>
+</html>
